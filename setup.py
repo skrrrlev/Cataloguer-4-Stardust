@@ -5,8 +5,8 @@ setup(
     name = "C4S",
     author = "Ditlev Frickmann @skrrrlev",
     author_email = "reimer.frickmann@gmail.com",
-    description = "Master Thesis Library",
-    version = "0.0.0",
+    description = "A tool for easily creating the necessary input files for the Stardust SED fitting code using your own data.",
+    version = "0.0.1",
     license = "MIT",
     url = "https://github.com/skrrrlev/Cataloguer-4-Stardust.git",  
     packages=[
