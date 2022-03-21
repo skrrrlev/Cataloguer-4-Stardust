@@ -1,5 +1,7 @@
-# Walk-through of the _test.py_.
+# Walk-through of the _test.py_ script.
+The _test.py_ script contains an example usage of the C4S package. 
 
+If you've sucessfully installed the package, you should be able to run the script, and get the same output.
 All output files can be found in the folder _test/_. Take a look to get familiar with them.
 
 #### 1. Create catalogue
