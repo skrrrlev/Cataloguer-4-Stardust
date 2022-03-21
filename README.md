@@ -1,4 +1,4 @@
-# Cataloguer For Stardust (C4S)
+# Cataloguer For Stardust (``C4S``)
 A tool for easily creating the necessary input files for the [Stardust SED fitting code](https://github.com/VasilyKokorev/stardust.git) using your own data.
 
 ## Setup
