@@ -1,0 +1,1 @@
+from .cataloguer import Cataloguer as CataloguerForStardust
