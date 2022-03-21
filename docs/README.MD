@@ -21,7 +21,7 @@ c4s.create_target(1,1,1,1)
 c4s.create_target(2,2,2,2)
 ```
 
-Everytime you add a target, you basically add a row to the fits-file. After running these two lines of code, the internal catalogue now looks like:
+Everytime you add a target, you basically add a row to the table. After running these two lines of code, the internal catalogue now looks like:
 
 | id | ra | dec | z |
 |----|----|-----|---|
@@ -38,24 +38,29 @@ c4s.add_observation(2,'A',2,0.5,'uJy',code=1)
 c4s.add_observation(1,'B',3,0.4,'uJy',λ=250)
 ```
 
-Running these three lines of codes adds observations to the targets. The table comes out in the following way:
+Running these three lines of codes adds observations to the targets. The FITS format of the internal table comes out in the following way:
 
 | id | ra | dec | z | f_A | fe_A | f_B | fe_B | wl_B |
 |----|----|-----|---|-----|------|-----|------|------|
 | 1  | 1  | 1   | 1 | 1   | 0.1  | 3   | 0.4  | 250  |
 | 2  | 2  | 2   | 2 | 2   | 0.5  |     |      |      |
 
-Columns prefixed with _f_ contains the flux. Columns prefixed with _fe_ contains the uncertainty of the flux. Columns prefixed with _wl_ contains the central wavelength of the square filter in μm. 
+Columns prefixed with _f_ contains the flux. Columns prefixed with _fe_ contains the uncertainty of the flux. Columns prefixed with _wl_ contains the central wavelength of the square filter in μm. However, should you want to use the *does_column_exist(name: str)* method, the internal table has only a single observation element covering both the _f_, _fe_ and _wl_ columns. Thus:
 
-Notice that the _Cataloguer_ has converted the flux and uncertainty to _mJy_.
+```python
+c4s.does_column_exist('f_A') # == False
+c4s.does_column_exist('A') # == True
+```
+
+Notice that the _Cataloguer_ has converted the flux and flux uncertainty to _mJy_.
 
 
 #### 4. Saving the catalogue
 ```python
-# save catalogue --> Fits file, config file, param file, bands file and potentially the extra bands file.
+# save catalogue --> FITS file, config file, param file, bands file and potentially the extra bands file.
 c4s.save()
 ```
-Saving the catalogue will first and foremost save the fits file. It will look like:
+Saving the catalogue will first and foremost save the FITS file. It will look like:
 
 | id | ra | dec | z | f_A | fe_A | f_B | fe_B | wl_B |
 |----|----|-----|---|-----|------|-----|------|------|

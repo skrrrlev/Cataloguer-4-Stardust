@@ -108,6 +108,7 @@ class Cataloguer:
             raise ValueError(f'Target {id} already exists.')
 
     def does_column_exist(self, name: str) -> bool:
+        '''Returns boolean describing whether a column with the given unique "name" exists in the Cataloguer.'''
         return name in self.columns
 
     def add_observation(self, id: int, name: str, f: float, Δf:float, unit: str, code: int = None, λ: float = None):
@@ -131,15 +132,18 @@ class Cataloguer:
         if not self.does_column_exist(name):
             self.columns[name] = {'format': 'E', 'unit': str(self.flux_unit), 'type': tp}
             if tp == ColumnType.FILTER:
-                self.add_to_bands_file(name, code)
+                self._add_to_bands_file(name, code)
             elif tp == ColumnType.EXTRA:
-                self.add_to_extra_bands_file(name)
+                self._add_to_extra_bands_file(name)
 
         self.targets[id].add_observation(name, f, Δf, λ)
 
 
-    def add_to_bands_file(self, name: str, code: int) -> None:
-        '''Add new line to the .bands file, connecting the stardust code with the name of the flux and flux-uncertainty column.'''
+    def _add_to_bands_file(self, name: str, code: int) -> None:
+        '''
+        Add new line to the .bands file, connecting the stardust code with the name of the flux and flux-uncertainty column.
+        Automatically runs everytime a new "filter"-type column is defined.
+        '''
         file = self.path + self.name + '.bands'
         if isfile(file):
             open_code = 'a'
@@ -149,8 +153,11 @@ class Cataloguer:
         with open(file, open_code) as f:
             f.write(f'{code} f_{name} fe_{name}\n')
 
-    def add_to_extra_bands_file(self, name: str) -> None:
-        '''Add new line to the .extra_bands file, connecting the central wavelength column to the flux and flux-uncertainty column.'''
+    def _add_to_extra_bands_file(self, name: str) -> None:
+        '''
+        Add new line to the .extra_bands file, connecting the central wavelength column to the flux and flux-uncertainty column.
+        Automatically runs everytime a new column "extra bands"-type column is defined.
+        '''
         file = self.path + self.name + '.bands_extra'
         if isfile(file):
             open_code = 'a'
@@ -165,7 +172,8 @@ class Cataloguer:
 
 
 
-    def write_config_file(self):
+    def _write_config_file(self):
+        '''Create the config file. Is used by the save() method.'''
         content = f'''#===============================================================================
 #INPUT PARAMETERS
 #===============================================================================
@@ -214,21 +222,26 @@ FIT_STELLAR 1
         print(f"Created config file: {self.path+self.name+'.config'}")
 
 
-    def write_param_file(self):
+    def _write_param_file(self):
+        '''Create the .param file. Used by the save() method.'''
         with open(self.path+self.name+'.param', 'w') as f:
             f.write('id id\n')
             f.write('z z\n')
             f.write('Mstar None')
         print(f"Created param file: {self.path+self.name+'.param'}")
 
-    def write_fits_file(self):
+    def _write_fits_file(self):
+        '''Create the fits file. Used by the save() method.'''
 
+        # Define variable to hold fits columns.
         fits_columns: "dict[str, fits.Column]" = {}
         
+        # Create empty fits columns
         for name in self.columns:
             _type = self.columns[name]['type']
             _format = self.columns[name]['format']
             _unit = self.columns[name]['unit']
+
             if _type == ColumnType.INFO:
                 fits_columns[name] = fits.Column(name=name, array=np.array([]), format=_format)
             elif _type == ColumnType.FILTER:
@@ -246,6 +259,7 @@ FIT_STELLAR 1
             else:
                 raise NotImplementedError(f'This was not supposed to happen:\ntype={_type}, name={name}')
 
+        # fill in fits columns.
         for id in self.targets:
             target = self.targets[id]
             for name in self.columns:
@@ -268,6 +282,7 @@ FIT_STELLAR 1
                     fits_columns[fe_name].array = np.append(fits_columns[fe_name].array, fe)
                     fits_columns[wl_name].array = np.append(fits_columns[wl_name].array, wl)
 
+        # save file
         columns = [fits_columns[key] for key in fits_columns]
         hdu = fits.BinTableHDU.from_columns(columns)
         hdu.writeto(self.path+self.name+'.fits',overwrite=True)
@@ -276,30 +291,13 @@ FIT_STELLAR 1
     def save(self):
         print('Saving catalogue.')
         self.print_targets()
-        self.write_config_file()
-        self.write_param_file()
-        self.write_fits_file()
+        self._write_config_file()
+        self._write_param_file()
+        self._write_fits_file()
 
     def print_targets(self):
         for target in self.targets:
             print(self.targets[target])
 
-
-if __name__ == '__main__':
-    # create catalogue "test-name" at the path "./test/"
-    c4s = Cataloguer('test-name','test')
-    # add target with unique ID=1 at RA=1, DEC=1, z=1
-    c4s.create_target(1,1,1,1)
-    # add target with unique ID=2 at RA=2, DEC=2, z=2
-    c4s.create_target(2,2,2,2)
-    # add observation of target ID=1 for instrument (+ filter) A with a flux of 1 ± 0.1 μJy, and assign Stardust filter 1 to it.
-    c4s.add_observation(1,'A',1,0.1,'uJy',code=1)
-    # add observation of target ID=2 for instrument (+ filter) A with a flux of 2 ± 0.5 μJy, and assign Stardust filter 1 to it.
-    c4s.add_observation(2,'A',2,0.5,'uJy',code=1)
-    # add observation of target ID=1 for instrument (+ filter) B with a flux of 3 ± 0.4 μJy, and assign a square filter around 250 μm.
-    c4s.add_observation(1,'B',3,0.4,'uJy',λ=250)
-    # save catalogue --> Fits file, config file, param file, bands file and potentially the extra bands file.
-    c4s.save()
-    print(c4s)
 
 
