@@ -1,1 +1,1 @@
-from .cataloguer import Cataloguer as CataloguerForStardust
+from .cataloguer import Cataloguer
