@@ -31,11 +31,11 @@ Everytime you add a target, you basically add a row to the table. After running 
 #### 3. Add observations
 ```python
 # add observation of target ID=1 for instrument (+ filter) A with a flux of 1000 ± 100 μJy, and assign Stardust filter 1 to it.
-c4s.add_observation(1,'A',1,0.1,'uJy',code=1)
+c4s.add_observation(1,'A',1000,100,'uJy',code=1)
 # add observation of target ID=2 for instrument (+ filter) A with a flux of 2000 ± 500 μJy, and assign Stardust filter 1 to it.
-c4s.add_observation(2,'A',2,0.5,'uJy',code=1)
+c4s.add_observation(2,'A',2000,500,'uJy',code=1)
 # add observation of target ID=1 for instrument (+ filter) B with a flux of 3000 ± 400 μJy, and assign a square filter around 250 μm.
-c4s.add_observation(1,'B',3,0.4,'uJy',λ=250)
+c4s.add_observation(1,'B',3000,400,'uJy',λ=250)
 ```
 
 Running these three lines of codes adds observations to the targets. The FITS format of the internal table comes out in the following way:
