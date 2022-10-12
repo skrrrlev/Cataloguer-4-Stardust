@@ -61,6 +61,9 @@ class Cataloguer:
         }
         '''Columns of the resulting fits file.'''
 
+        self._filter_code_map: "dict[int,str]" = {}
+        '''Linking the filter codes to the column names.'''
+
         self.targets: "dict[int,Target]" = {}
         '''Dictionary using target ids as keys, containing target objects.'''
 
@@ -121,21 +124,12 @@ class Cataloguer:
         return name in self.columns
 
     def does_filter_code_column_exist(self, code: int) -> bool:
-        
-        for name in self.columns:
-            if self.columns[name]['type'] != ColumnType.FILTER:
-                continue
-            if self.columns[name]['code'] == code:
-                return True
-        return False
+        '''Check whether a column with the given filter code already exists.'''
+        return code in self._filter_code_map
 
     def get_name_of_filter_column_by_code(self, code: int) -> str:
-        for name in self.columns:
-            if self.columns[name]['type'] != ColumnType.FILTER:
-                continue
-            if self.columns[name]['code'] == code:
-                return name
-        raise ValueError(f'No column with code {code} exists.')
+        '''Returns the name of the column that corresponds to the given filter code.'''
+        return self._filter_code_map[code]
 
     def add_observation(self, id: int, name: str, f: float, Δf:float, unit: str, code: int = None, λ: float = None):
         '''Add an observation to a target in the Cataloguer.
@@ -154,16 +148,18 @@ class Cataloguer:
             tp = ColumnType.EXTRA
         else:
             raise ValueError('Please specify either a stardust code or a extra-band wavelength.')
-
+        
         if not self.does_column_exist(name):
-            self.columns[name] = {'format': 'E', 'unit': str(self.flux_unit), 'type': tp}
             if tp == ColumnType.FILTER:
-                self._add_to_bands_file(name, code)
+                if self.does_filter_code_column_exist(code):
+                    self.columns[name] = {'format': 'E', 'unit': str(self.flux_unit), 'type': tp}
+                    self._filter_code_map[code] = name
+                    self._add_to_bands_file(name, code)
+                else:
+                    name = self.get_name_of_filter_column_by_code(code)
             elif tp == ColumnType.EXTRA:
+                self.columns[name] = {'format': 'E', 'unit': str(self.flux_unit), 'type': tp}
                 self._add_to_extra_bands_file(name)
-
-        if tp == ColumnType.FILTER and self.does_filter_code_column_exist(code):
-            name = self.get_name_of_filter_column_by_code(code)
 
         self.targets[id].add_observation(name, f, Δf, λ)
 
