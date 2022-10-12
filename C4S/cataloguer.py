@@ -345,7 +345,10 @@ FIT_STELLAR 1
         '''Load the eazy translation file'''
         with open(dirname(abspath(__file__))+'/eazy/stardust-eazy-filter-translation.txt','r') as f:
             lines = f.readlines()
-        map = {int(line[0]):int(line[1]) for line in lines[1:]}
+        map = {}
+        for line in lines[1:]:
+            items = line.split(' ')
+            map[int(items[0])] = int(items[1])
         return map
 
 
