@@ -151,7 +151,7 @@ class Cataloguer:
         
         if not self.does_column_exist(name):
             if tp == ColumnType.FILTER:
-                if self.does_filter_code_column_exist(code):
+                if not self.does_filter_code_column_exist(code):
                     self.columns[name] = {'format': 'E', 'unit': str(self.flux_unit), 'type': tp}
                     self._filter_code_map[code] = name
                     self._add_to_bands_file(name, code)
