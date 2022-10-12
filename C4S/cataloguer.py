@@ -1,12 +1,14 @@
 # imports
+from os import makedirs, remove
+from os.path import abspath, dirname, isdir, isfile
+
+import numpy as np
 from astropy import units as U
 from astropy.io import fits
-from os import makedirs, remove
-from os.path import isdir, isfile
-import numpy as np
 
 # relative imports
-from .dataclasses import Target, ColumnType
+from .dataclasses import ColumnType, Target
+
 
 class Cataloguer:
     '''This cataloguer can create the input files that the Stardust SED fitting algorithm uses.
@@ -38,7 +40,7 @@ class Cataloguer:
 
     '''
 
-    def __init__(self, name: str, path: str, flux_unit=U.mJy) -> None:
+    def __init__(self, name: str, path: str, flux_unit=U.mJy, translate_to_eazy=False) -> None:
 
         self.name = name
         '''Name of catalogue instance'''
@@ -64,6 +66,13 @@ class Cataloguer:
 
         self.extra_bands: bool = False
         '''Boolean check for whether any extra bands has been added.'''
+
+        self.translate_to_eazy = translate_to_eazy
+        '''Boolean check for whether the bands file should also be translated to EAZY format.'''
+        
+        self._eazy_translation_map = self.load_eazy_translation_file() if self.translate_to_eazy else None
+        '''Dictionary mapping Stardust filter codes to EAZY filter codes.'''
+            
 
     def __repr__(self) -> str:
         string = f'----< Catalogue-4-Stardust >----\n'
@@ -111,11 +120,28 @@ class Cataloguer:
         '''Returns boolean describing whether a column with the given unique "name" exists in the Cataloguer.'''
         return name in self.columns
 
+    def does_filter_code_column_exist(self, code: int) -> bool:
+        
+        for name in self.columns:
+            if self.columns[name]['type'] != ColumnType.FILTER:
+                continue
+            if self.columns[name]['code'] == code:
+                return True
+        return False
+
+    def get_name_of_filter_column_by_code(self, code: int) -> str:
+        for name in self.columns:
+            if self.columns[name]['type'] != ColumnType.FILTER:
+                continue
+            if self.columns[name]['code'] == code:
+                return name
+        raise ValueError(f'No column with code {code} exists.')
+
     def add_observation(self, id: int, name: str, f: float, Δf:float, unit: str, code: int = None, λ: float = None):
         '''Add an observation to a target in the Cataloguer.
             The Cataloguer will automatically keep track of the types of observations added.'''
 
-        if not unit == str(self.flux_unit):
+        if not unit.lower() == str(self.flux_unit).lower():
             f = ((f*U.Unit(unit)).to(self.flux_unit)).value
             Δf = ((Δf*U.Unit(unit)).to(self.flux_unit)).value
         
@@ -136,6 +162,9 @@ class Cataloguer:
             elif tp == ColumnType.EXTRA:
                 self._add_to_extra_bands_file(name)
 
+        if tp == ColumnType.FILTER and self.does_filter_code_column_exist(code):
+            name = self.get_name_of_filter_column_by_code(code)
+
         self.targets[id].add_observation(name, f, Δf, λ)
 
 
@@ -152,6 +181,17 @@ class Cataloguer:
 
         with open(file, open_code) as f:
             f.write(f'{code} f_{name} fe_{name}\n')
+        
+        if self.translate_to_eazy:
+            file = self.path + self.name + 'eazy.bands'
+            if isfile(file):
+                open_code = 'a'
+            else:
+                open_code = 'w'
+
+            with open(file, open_code) as f:
+                f.write(f'f_{name} F{self._eazy_translation_map[code]}\n')
+                f.write(f'fe_{name} E{self._eazy_translation_map[code]}\n')
 
     def _add_to_extra_bands_file(self, name: str) -> None:
         '''
@@ -299,5 +339,11 @@ FIT_STELLAR 1
         for target in self.targets:
             print(self.targets[target])
 
+    def load_eazy_translation_file(self):
+        '''Load the eazy translation file'''
+        with open(dirname(abspath(__file__)+'eazy/stardust-eazy-filter-translation.txt','r')) as f:
+            lines = f.readlines()
+        map = {int(line[0]):int(line[1]) for line in lines[1:]}
+        return map
 
 

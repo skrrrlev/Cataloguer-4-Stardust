@@ -12,7 +12,6 @@ class Target:
         self.dec = dec
         self.z = z
         self.observations: "dict[str,dict[str,Union[float,None]]]" = {}
-        self.extra = {}
 
     def __repr__(self):
         return f'{self.id:9}>  RA:{self.ra:.5f}  DEC:{self.dec:.5f}  z:{self.z:3f} | observations: {len(self.observations)}'

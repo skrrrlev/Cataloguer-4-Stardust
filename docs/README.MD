@@ -7,11 +7,13 @@ All output files can be found in the folder _test/_. Take a look to get familiar
 #### 1. Create catalogue
 ```python
 # create catalogue "test-name" at the path "./docs/test"
-c4s = Cataloguer('test-name','docs/test',unit=astropy.units.mJy)
+c4s = Cataloguer('test-name','docs/test',unit=astropy.units.mJy, translate_to_eazy=False)
 ```
 Notice that the catalogue has been defined to be outputted in mJy.
 
 The internal catalogue comes pre-defined with four columns; id, ra, dec & z. Thus, currently the catalogue only consists of those four columns. No rows has been added yet.
+
+There's also an option to create a translation file for the ascii table that EAZY can use. Do note that EAZY does not accept observartions without transmission filters.
 
 #### 2. Add targets
 ```python
@@ -72,6 +74,12 @@ Notice that values that do not exist, but are required in the table structure, h
 A _.bands_ file is created that links the _A_-column to the _Stardust_ filter code 1. It contains the following line:
 ```console
 1 f_A fe_A
+```
+
+If EAZY translation is set to true, the _eazy.bands_ file is also created, which links the _A_-column to the _EAZY_ filter code 1. It contains the following lines:
+```console
+f_A F1
+fe_A E1
 ```
 
 A *.bands_extra* file is created that links the _B_-column to the central wavelength. It contains the following line:
