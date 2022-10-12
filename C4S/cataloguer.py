@@ -183,6 +183,8 @@ class Cataloguer:
             f.write(f'{code} f_{name} fe_{name}\n')
         
         if self.translate_to_eazy:
+            if not code in self._eazy_translation_map:
+                return
             file = self.path + self.name + 'eazy.bands'
             if isfile(file):
                 open_code = 'a'
