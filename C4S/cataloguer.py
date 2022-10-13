@@ -63,8 +63,6 @@ class Cataloguer:
         self.catalouger_files = [self._fits_file, self._bands_file, self._eazy_bands_file, self._extra_bands_file, self._config_file, self._param_file]
         '''List of all files created by Cataloguer.'''
 
-        self._clean_directory()
-
         self.flux_unit = flux_unit
         '''Unit of flux and flux uncertainties'''
 
@@ -87,9 +85,15 @@ class Cataloguer:
 
         self.translate_to_eazy = translate_to_eazy
         '''Boolean check for whether the bands file should also be translated to EAZY format.'''
+
+        if self.translate_to_eazy and self.flux_unit != U.mJy:
+            raise ValueError('Flux unit must be mJy when translating to EAZY format.')
         
         self._eazy_translation_map = self._load_eazy_translation_file() if self.translate_to_eazy else None
         '''Dictionary mapping Stardust filter codes to EAZY filter codes.'''
+
+        # Finally, clean the designated directory.
+        self._clean_directory()
             
 
     def __repr__(self) -> str:
