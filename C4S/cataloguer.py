@@ -86,7 +86,7 @@ class Cataloguer:
         self.translate_to_eazy = translate_to_eazy
         '''Boolean check for whether the bands file should also be translated to EAZY format.'''
 
-        if self.translate_to_eazy and self.flux_unit != U.mJy:
+        if self.translate_to_eazy and self.flux_unit != U.uJy:
             raise ValueError('Flux unit must be mJy when translating to EAZY format.')
         
         self._eazy_translation_map = self._load_eazy_translation_file() if self.translate_to_eazy else None
