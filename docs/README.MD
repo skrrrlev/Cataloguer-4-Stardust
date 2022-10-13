@@ -64,10 +64,10 @@ c4s.save()
 ```
 Saving the catalogue will first and foremost save the FITS file. It will look like:
 
-| id | ra | dec | z | f_A | fe_A | f_B | fe_B | wl_B |
-|----|----|-----|---|-----|------|-----|------|------|
-| 1  | 1  | 1   | 1 | 1   | 0.1  | 3   | 0.4  | 250  |
-| 2  | 2  | 2   | 2 | 2   | 0.5  | -99 | -99  | -99  |
+| id | ra | dec | z | f_A | fe_A | f_B | fe_B  | wl_B |
+|----|----|-----|---|-----|------|-----|-------|------|
+| 1  | 1  | 1   | 1 | 1   | 0.1  | 3   | 0.4   | 250  |
+| 2  | 2  | 2   | 2 | 2   | 0.5  | -99 | 1E10  | -99  |
 
 Notice that values that do not exist, but are required in the table structure, has been added as _-99_. This is the standard _missing value_ format for _Stardust_. 
 
@@ -96,5 +96,6 @@ Mstar None
 Currently, there's no way to add stellar masses. 
 
 Lastly, a _.config_ file is created, that can easily be customized to how you want to apply _Stardust_. However, it comes pre-fitted with the correct paths to the various input files. Also, you can run it directly with _Stardust_, and the output will be saved in _output/_ folder located in the same directory as the configuration files.
+The output of the `test.py` script in this folder, can be found [here](./test/).
 
 
