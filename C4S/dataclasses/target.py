@@ -4,6 +4,9 @@ from typing import Union
 # relative imports
 from .columntype import ColumnType
 
+MISSING_FLUX = -99
+MISSING_UNCERTAINTY = 1E10
+MISSING_WAVELENGTH = -99
 
 class Target:
     def __init__(self, id: int, ra: float, dec: float, z: float) -> None:
@@ -27,7 +30,7 @@ class Target:
 
     def get_flux_and_uncertainty(self, name: str) -> "tuple[float,float]":
         if not self.does_observation_exist(name):
-            return (-99,-99)
+            return (MISSING_FLUX,MISSING_UNCERTAINTY)
         else:
             flux = self.observations[name]['flux']
             uncertainty = self.observations[name]['flux_uncertainty']
@@ -35,20 +38,20 @@ class Target:
 
     def get_wavelength(self,name: str):
         if not self.does_observation_exist(name):
-            return -99
+            return MISSING_WAVELENGTH
         elif not self.observations[name]['wavelength']: # if wavelength is None
             raise ValueError(f'Observation "{name}" is not of type {ColumnType.EXTRA}')
         else:
             return self.observations[name]['wavelength']
 
     def get_info(self,info: str):
-        if info == 'id':
+        if info.lower() == 'id':
             return self.id
-        elif info == 'ra':
+        elif info.lower() in ['ra','right ascension']:
             return self.ra
-        elif info == 'dec':
+        elif info.lower() in ['dec','declination']:
             return self.dec
-        elif info == 'z':
+        elif info.lower() in ['z','redshift']:
             return self.z
         else:
             raise NotImplementedError(f'This was not supposed to happen. Requested info: {info} from target {self.id}')

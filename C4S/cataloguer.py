@@ -338,7 +338,7 @@ FIT_STELLAR 1
         columns = [fits_columns[key] for key in fits_columns]
         hdu = fits.BinTableHDU.from_columns(columns)
         hdu.writeto(self._fits_file,overwrite=True)
-        print(f"Created fits file: {self.path+self.name+'.fits'}")
+        print(f"Created ascii table: {self._fits_file}")
 
     def save(self):
         print('Saving catalogue.')
