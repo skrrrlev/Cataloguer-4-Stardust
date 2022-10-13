@@ -179,6 +179,42 @@ class Cataloguer:
 
         self.targets[id].add_observation(name, f, Δf, λ)
 
+    def add_three_sigma_upper_limit(self, id: int, name: str, f: float, unit: str, code: int = None, λ: float = None):
+        '''Add an observation to a target in the Cataloguer for which you only have the 3σ upper limit.
+            The Cataloguer will automatically keep track of the types of observations added.'''
+
+        Δf = f
+        f *= 1E-5
+        if not unit.lower() == str(self.flux_unit).lower():
+            f = ((f*U.Unit(unit)).to(self.flux_unit)).value
+            Δf = ((Δf*U.Unit(unit)).to(self.flux_unit)).value
+        
+        tp = None
+        if code and λ: 
+            raise ValueError('Observation cannot be regular filter and an extra band.')
+        elif code:
+            tp = ColumnType.FILTER
+        elif λ:
+            tp = ColumnType.EXTRA
+        else:
+            raise ValueError('Please specify either a stardust code or a extra-band wavelength.')
+        
+        if not self.does_column_exist(name):
+            if tp == ColumnType.FILTER:
+                if not self.does_filter_code_column_exist(code):
+                    self.columns[name] = {'format': 'E', 'unit': str(self.flux_unit), 'type': tp}
+                    self._filter_code_map[code] = name
+                    self._add_to_bands_file(name, code)
+                    if self.translate_to_eazy:
+                        self._add_to_eazy_bands_file(name, code)
+                else:
+                    name = self.get_name_of_filter_column_by_code(code)
+            elif tp == ColumnType.EXTRA:
+                self.columns[name] = {'format': 'E', 'unit': str(self.flux_unit), 'type': tp}
+                self._add_to_extra_bands_file(name)
+
+        self.targets[id].add_observation(name, f, Δf, λ)
+
 
     def _add_to_bands_file(self, name: str, code: int) -> None:
         '''
