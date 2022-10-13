@@ -24,7 +24,7 @@ class Cataloguer:
 
                 Each unique target is identified by an ID <int>.
 
-            Must also pass the RA, DEC and redshift of the target, however, they are not being actively used by Stardust.
+            Must also pass the RA, DEC and redshift of the target, however, RA and DEC are not being actively used by Stardust.
         
         Add observation:
             Add an observation of a target to the catalogue.
@@ -47,6 +47,22 @@ class Cataloguer:
 
         self.path = path
         '''Path to files created by Cataloguer.'''
+
+        self._fits_file = self.path + self.name + '.fits'
+        '''Path to the ascii table .fits file created by Cataloguer.'''
+        self._bands_file = self.path + self.name + '.bands'
+        '''Path to the .bands file created by Cataloguer.'''
+        self._eazy_bands_file = self.path + self.name + '.eazy.bands'
+        '''Path to the .eazy.bands file created by Cataloguer.'''
+        self._extra_bands_file = self.path + self.name + '.bands_extra'
+        '''Path to the .bands_extra file created by Cataloguer.'''
+        self._config_file = self.path + self.name + '.config'
+        '''Path to the .config file created by Cataloguer.'''
+        self._param_file = self.path + self.name + '.param'
+        '''Path to the .param file created by Cataloguer.'''
+        self.catalouger_files = [self._fits_file, self._bands_file, self._eazy_bands_file, self._extra_bands_file, self._config_file, self._param_file]
+        '''List of all files created by Cataloguer.'''
+
 
         self._clean_directory()
 
@@ -73,7 +89,7 @@ class Cataloguer:
         self.translate_to_eazy = translate_to_eazy
         '''Boolean check for whether the bands file should also be translated to EAZY format.'''
         
-        self._eazy_translation_map = self.load_eazy_translation_file() if self.translate_to_eazy else None
+        self._eazy_translation_map = self._load_eazy_translation_file() if self.translate_to_eazy else None
         '''Dictionary mapping Stardust filter codes to EAZY filter codes.'''
             
 
@@ -98,14 +114,9 @@ class Cataloguer:
             makedirs(self.path)
             return
         
-        if isfile(self.path + self.name + '.fits'):
-            remove(self.path + self.name + '.fits')
-        if isfile(self.path + self.name + '.bands'):
-            remove(self.path + self.name + '.bands')
-        if isfile(self.path + self.name + '.bands_extra'):
-            remove(self.path + self.name + '.bands_extra')
-        if isfile(self.path + self.name + '.config'):
-            remove(self.path + self.name + '.config')
+        for file in self.catalouger_files:
+            if isfile(file):
+                remove(file)
             
     
     def does_target_exist(self, id) -> bool:
@@ -155,6 +166,8 @@ class Cataloguer:
                     self.columns[name] = {'format': 'E', 'unit': str(self.flux_unit), 'type': tp}
                     self._filter_code_map[code] = name
                     self._add_to_bands_file(name, code)
+                    if self.translate_to_eazy:
+                        self._add_to_eazy_bands_file(name, code)
                 else:
                     name = self.get_name_of_filter_column_by_code(code)
             elif tp == ColumnType.EXTRA:
@@ -169,40 +182,42 @@ class Cataloguer:
         Add new line to the .bands file, connecting the stardust code with the name of the flux and flux-uncertainty column.
         Automatically runs everytime a new "filter"-type column is defined.
         '''
-        file = self.path + self.name + '.bands'
-        if isfile(file):
+        if isfile(self._bands_file):
             open_code = 'a'
         else:
             open_code = 'w'
 
-        with open(file, open_code) as f:
+        with open(self._bands_file, open_code) as f:
             f.write(f'{code} f_{name} fe_{name}\n')
-        
-        if self.translate_to_eazy:
-            if not code in self._eazy_translation_map:
-                return
-            file = self.path + self.name + '.eazy.bands'
-            if isfile(file):
-                open_code = 'a'
-            else:
-                open_code = 'w'
+            
+    
+    def _add_to_eazy_bands_file(self, name: str, code: int) -> None:
+        '''
+        Add new line to the .eazy.bands file, connecting the stardust code with the name of the flux and flux-uncertainty column.
+        Automatically runs everytime a new "filter"-type column is defined.
+        '''
+        if not code in self._eazy_translation_map:
+            return
+        if isfile(self._eazy_bands_file):
+            open_code = 'a'
+        else:
+            open_code = 'w'
 
-            with open(file, open_code) as f:
-                f.write(f'f_{name} F{self._eazy_translation_map[code]}\n')
-                f.write(f'fe_{name} E{self._eazy_translation_map[code]}\n')
+        with open(self._eazy_bands_file, open_code) as f:
+            f.write(f'f_{name} F{self._eazy_translation_map[code]}\n')
+            f.write(f'fe_{name} E{self._eazy_translation_map[code]}\n')
 
     def _add_to_extra_bands_file(self, name: str) -> None:
         '''
         Add new line to the .extra_bands file, connecting the central wavelength column to the flux and flux-uncertainty column.
         Automatically runs everytime a new column "extra bands"-type column is defined.
         '''
-        file = self.path + self.name + '.bands_extra'
-        if isfile(file):
+        if isfile(self._extra_bands_file):
             open_code = 'a'
         else:
             open_code = 'w'
 
-        with open(file, open_code) as f:
+        with open(self._extra_bands_file, open_code) as f:
             f.write(f'wl_{name} f_{name} fe_{name}\n')
 
         if not self.extra_bands:
@@ -255,18 +270,18 @@ FIT_AGN 0
 FIT_STELLAR 1
 #===============================================================================
 '''
-        with open(self.path+self.name+'.config', 'w') as f:
+        with open(self._config_file, 'w') as f:
             f.write(content)
-        print(f"Created config file: {self.path+self.name+'.config'}")
+        print(f"Created config file: {self._config_file}")
 
 
     def _write_param_file(self):
         '''Create the .param file. Used by the save() method.'''
-        with open(self.path+self.name+'.param', 'w') as f:
+        with open(self._param_file, 'w') as f:
             f.write('id id\n')
             f.write('z z\n')
             f.write('Mstar None')
-        print(f"Created param file: {self.path+self.name+'.param'}")
+        print(f"Created param file: {self._param_file}")
 
     def _write_fits_file(self):
         '''Create the fits file. Used by the save() method.'''
@@ -323,7 +338,7 @@ FIT_STELLAR 1
         # save file
         columns = [fits_columns[key] for key in fits_columns]
         hdu = fits.BinTableHDU.from_columns(columns)
-        hdu.writeto(self.path+self.name+'.fits',overwrite=True)
+        hdu.writeto(self._fits_file,overwrite=True)
         print(f"Created fits file: {self.path+self.name+'.fits'}")
 
     def save(self):
@@ -337,7 +352,7 @@ FIT_STELLAR 1
         for target in self.targets:
             print(self.targets[target])
 
-    def load_eazy_translation_file(self):
+    def _load_eazy_translation_file(self):
         '''Load the eazy translation file'''
         with open(dirname(abspath(__file__))+'/eazy/stardust-eazy-filter-translation.txt','r') as f:
             lines = f.readlines()
