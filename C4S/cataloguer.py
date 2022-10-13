@@ -63,7 +63,6 @@ class Cataloguer:
         self.catalouger_files = [self._fits_file, self._bands_file, self._eazy_bands_file, self._extra_bands_file, self._config_file, self._param_file]
         '''List of all files created by Cataloguer.'''
 
-
         self._clean_directory()
 
         self.flux_unit = flux_unit
