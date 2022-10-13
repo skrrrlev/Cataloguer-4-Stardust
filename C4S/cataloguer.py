@@ -233,17 +233,17 @@ class Cataloguer:
         content = f'''#===============================================================================
 #INPUT PARAMETERS
 #===============================================================================
-CATALOGUE   {self.path}{self.name}.fits
-BANDS_FILE  {self.path}{self.name}.bands
-EXTRA_BANDS_FILE {self.path+self.name+'.bands_extra' if self.extra_bands else 'None'}
-PARAM_FILE  {self.path}{self.name}.param
+CATALOGUE   {abspath(self._fits_file)}
+BANDS_FILE  {abspath(self._bands_file)}
+EXTRA_BANDS_FILE {abspath(self._extra_bands_file) if self.extra_bands else 'None'}
+PARAM_FILE  {abspath(self._param_file)}
 #===============================================================================
 #OUTPUT PARAMETERS
 #===============================================================================
-PATH    {self.path}outputs/test/
+PATH    {abspath(self.path)}/outputs/test/
 OUTPUT_NAME test
-FIGLOC  {self.path}outputs/test/figures/
-sedloc  {self.path}outputs/test/seds/
+FIGLOC  {abspath(self.path)}/outputs/test/figures/
+sedloc  {abspath(self.path)}/outputs/test/seds/
 #covarloc test/output/covar
 SAVE_FIGURE 1
 SAVE_TABLE 1
